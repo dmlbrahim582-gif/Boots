@@ -1,0 +1,27 @@
+name: Run Telegram Bot
+
+on:
+  schedule:
+    # سيتم تشغيل البوت تلقائياً كل ساعة (يمكنك تعديلها حسب رغبتك)
+    - cron: '0 * * * *'
+  workflow_dispatch: # يتيح لك تشغيل البوت يدوياً في أي وقت
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # يعتمد على إصدار Node المدعوم لملفاتك
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Bot Script
+        run: node bot.js
+        
