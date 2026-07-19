@@ -1,0 +1,11 @@
+{
+  "name": "boots",
+  "version": "1.0.0",
+  "description": "Telegram Bot",
+  "main": "bot.js",
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "simple-git": "^3.0.0"
+  }
+}
+
