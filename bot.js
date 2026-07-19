@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const git = simpleGit();
 
-// روابط البث الخاصة بالقناتين
+// روابط البث الخاصة بالقناتين المدمجتين في نظام المنصة
 const channels = [
     {
         name: 'playr',
@@ -35,7 +35,7 @@ async function captureSnapshots() {
             // الانتقال إلى رابط البث
             await page.goto(ch.url, { waitUntil: 'networkidle2', timeout: 30000 });
             
-            // انتظام إنساني: انتظر 5 ثوانٍ ليتجاوز المشغل أي شاشات تحميل سوداء
+            // الانتظار لتجاوز شاشات التحميل السوداء
             await new Promise(resolve => setTimeout(resolve, 5000));
             
             const savePath = path.join(__dirname, ch.filename);
@@ -53,7 +53,7 @@ async function captureSnapshots() {
 
         await browser.close();
         
-        // رفع الصور المحدثة تلقائياً إلى GitHub
+        // رفع الصور المحدثة تلقائياً إلى GitHub في عملية واحدة منسقة
         await pushToGitHub();
 
     } catch (error) {
@@ -64,6 +64,7 @@ async function captureSnapshots() {
 
 async function pushToGitHub() {
     try {
+        // إضافة الصورتين معاً لتجنب أي تعارض في الرفع
         await git.add(['live-thumb.jpg', 'live-thumb-2.jpg']);
         await git.commit('🤖 Bot Update: Live channel snapshots updated concurrently');
         await git.push('origin', 'main');
@@ -73,6 +74,6 @@ async function pushToGitHub() {
     }
 }
 
-// تشغيل الفحص والتقاط الصور بشكل مستقر وتلقائي كل دقيقة
+// تشغيل الفحص والتقاط الصور تلقائياً وبشكل دوري كل دقيقة
 captureSnapshots();
 setInterval(captureSnapshots, 60000);
