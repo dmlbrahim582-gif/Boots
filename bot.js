@@ -1,39 +1,78 @@
 const puppeteer = require('puppeteer');
+const simpleGit = require('simple-git');
+const path = require('path');
+const fs = require('fs');
 
-// رابط مشغل البث المباشر الخاص بك
-const STREAM_URL = "https://player.livepush.io/live/emNg2whRb9krdvWzd";
+const git = simpleGit();
 
-async function takeLiveScreenshot() {
-    console.log("جاري تشغيل المتصفح الوهمي...");
+// روابط البث الخاصة بالقناتين
+const channels = [
+    {
+        name: 'playr',
+        url: 'https://player.livepush.io/live/emNg2whRb9krdvWzd',
+        filename: 'live-thumb.jpg'
+    },
+    {
+        name: '30frame',
+        url: 'https://player.livepush.io/live/emTA8mUW4_8OWcAeN',
+        filename: 'live-thumb-2.jpg'
+    }
+];
+
+async function captureSnapshots() {
+    console.log(`[${new Date().toLocaleTimeString()}] البدء في التقاط الصور المعاينة الحية...`);
     
     const browser = await puppeteer.launch({
-        headless: "new",
+        headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
-    const page = await browser.newPage();
-
-    // ضبط أبعاد اللقطة لتكون بجودة ممتازة ومتناسقة
-    await page.setViewport({ width: 1280, height: 720 });
-
     try {
-        console.log(`جاري الدخول إلى الرابط: ${STREAM_URL}`);
-        await page.goto(STREAM_URL, { waitUntil: 'networkidle2', timeout: 60000 });
+        for (const ch of channels) {
+            const page = await browser.newPage();
+            await page.setViewport({ width: 1280, height: 720 });
+            
+            // الانتقال إلى رابط البث
+            await page.goto(ch.url, { waitUntil: 'networkidle2', timeout: 30000 });
+            
+            // انتظام إنساني: انتظر 5 ثوانٍ ليتجاوز المشغل أي شاشات تحميل سوداء
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            const savePath = path.join(__dirname, ch.filename);
+            
+            // التقاط الصورة بدقة وجودة عالية
+            await page.screenshot({
+                path: savePath,
+                type: 'jpeg',
+                quality: 85
+            });
+            
+            console.log(`✓ تم بنجاح التقاط صورة القناة: ${ch.name}`);
+            await page.close();
+        }
 
-        console.log("الانتظار 5 ثوانٍ لضمان عمل البث بوضوح...");
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // حفظ الصورة باسم live-thumb.jpg المتوافق مع موقعك
-        const thumbnailPath = 'live-thumb.jpg';
-        await page.screenshot({ path: thumbnailPath, type: 'jpeg', quality: 85 });
-        console.log(`✨ تم التقاط الصورة وحفظها بنجاح كـ ${thumbnailPath}`);
+        await browser.close();
+        
+        // رفع الصور المحدثة تلقائياً إلى GitHub
+        await pushToGitHub();
 
     } catch (error) {
-        console.error("حدث خطأ أثناء التقاط الصورة:", error);
-    } finally {
+        console.error('حدث خطأ أثناء المعاينة:', error);
         await browser.close();
-        console.log("تم إغلاق المتصفح.");
     }
 }
 
-takeLiveScreenshot();
+async function pushToGitHub() {
+    try {
+        await git.add(['live-thumb.jpg', 'live-thumb-2.jpg']);
+        await git.commit('🤖 Bot Update: Live channel snapshots updated concurrently');
+        await git.push('origin', 'main');
+        console.log('⚡ تم رفع التحديثات الجديدة إلى مستودع GitHub بنجاح!');
+    } catch (gitError) {
+        console.error('خطأ أثناء الرفع للـ GitHub:', gitError);
+    }
+}
+
+// تشغيل الفحص والتقاط الصور بشكل مستقر وتلقائي كل دقيقة
+captureSnapshots();
+setInterval(captureSnapshots, 60000);
