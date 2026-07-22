@@ -2,15 +2,15 @@ name: Run Telegram Bot
 
 on:
   schedule:
-    - cron: '0 * * * *' # يعمل تلقائياً كل ساعة
-  workflow_dispatch: # يتيح لك تشغيله يدوياً
+    - cron: '*/5 * * * *' # يعمل تلقائياً كل 5 دقائق
+  workflow_dispatch: # للتشغيل اليدوي
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # إعطاء صلاحية للبوت لرفع الصورة الجديدة لمستودعك
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -26,6 +26,8 @@ jobs:
           npm install puppeteer
 
       - name: Run Bot Script
+        env:
+          STREAM_URL: "https://july-marcus-scotland-stat.trycloudflare.com/live/live/index.m3u8"
         run: node bot.js
 
       - name: Commit and Push Thumbnail
