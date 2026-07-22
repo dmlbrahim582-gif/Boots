@@ -3,14 +3,14 @@ name: Run Telegram Bot
 on:
   schedule:
     - cron: '*/5 * * * *' # يعمل تلقائياً كل 5 دقائق
-  workflow_dispatch: # للتشغيل اليدوي
+  workflow_dispatch: # يتيح لك التشغيل اليدوي في أي وقت
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write # إعطاء صلاحية للبوت لرفع الصورة المحدثة إلى المستودع
 
     steps:
       - name: Checkout Repository
@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # تحديث النسخة لإزالة التحذير
 
       - name: Install Dependencies
         run: |
@@ -37,3 +37,4 @@ jobs:
           git add live-thumb.jpg || true
           git commit -m "تحديث الصورة المصغرة للبث المباشر 📸" || true
           git push origin main || true
+          
